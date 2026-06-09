@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Girsch Portfolio"/>
+<title>Girsch Household Investments</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#070b18;min-height:100vh;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:18px 16px;}
+.wrap{max-width:600px;margin:0 auto;}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,0.12);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#3b82f6;border:3px solid #1e40af;cursor:pointer;}
+.card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px 18px;margin-bottom:14px;}
+.card-title{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:12px;}
+.tab-bar{display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,0.07);}
+.tab-btn{flex:1;padding:10px 6px;border-radius:9px;border:none;cursor:pointer;background:transparent;color:#64748b;font-weight:600;font-size:14px;border-bottom:2px solid transparent;transition:all .2s;}
+.tab-btn.active{background:rgba(59,130,246,0.25);color:#93c5fd;border-bottom-color:#3b82f6;}
+.stat-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.stat-box{background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 12px;flex:1;min-width:110px;}
+.pill-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;}
+.pill{padding:5px 10px;border-radius:20px;border:none;cursor:pointer;font-size:10px;font-weight:500;background:rgba(255,255,255,0.07);color:#94a3b8;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:right;color:#475569;font-weight:500;padding:5px 4px;border-bottom:1px solid rgba(255,255,255,0.07);font-size:10px;white-space:nowrap;}
+th:first-child{text-align:left;}
+td{padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;vertical-align:middle;}
+td:first-child{text-align:left;}
+.editable{cursor:text;font-family:monospace;font-size:11px;border-bottom:1px dashed rgba(255,255,255,0.2);padding-bottom:1px;display:inline-block;min-width:10px;}
+.slider-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px 20px;margin-bottom:16px;}
+.tick-row{display:flex;justify-content:space-between;margin-top:6px;}
+.tick{font-size:9px;color:#374151;cursor:pointer;font-family:monospace;}
+.tick.active{color:#3b82f6;font-weight:700;}
+.reset-btn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 12px;color:#64748b;font-size:11px;font-weight:500;cursor:pointer;}
+/* SVG chart styles */
+.chart-wrap{width:100%;overflow:hidden;}
+.bar-bg{fill:rgba(255,255,255,0.05);}
+.axis-line{stroke:rgba(255,255,255,0.05);stroke-width:1;}
+.axis-label{fill:#475569;font-size:9px;font-family:monospace;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const IC={"Kevin Roth IRA":{"2026":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0837,"Interest Earned":627.75},"2027":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1093.94},"2028":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1695.52},"2029":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2339.2},"2030":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3027.95},"2031":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3764.91},"2032":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4553.45},"2033":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":5397.19},"2034":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":6299.99},"2035":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":7265.99},"2036":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":8299.61},"2037":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":9405.59},"2038":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":10588.98},"2039":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":11855.21},"2040":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":13210.07},"2041":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":14659.77},"2042":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":16210.96},"2043":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":17870.73},"2044":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":19646.68},"2045":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":21546.94},"2046":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":23580.23},"2047":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":25755.85},"2048":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":28083.75},"2049":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":30574.62},"2050":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":33239.84},"2051":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":36091.63},"2052":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":39143.04},"2053":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":42408.06},"2054":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":45901.62},"2055":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":49639.73},"2056":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":53639.52},"2057":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":57919.28},"2058":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":62498.63},"2059":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":67398.54},"2060":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":72641.43},"2061":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":78251.33},"2062":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":84253.93},"2063":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":90676.7},"2064":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":97549.07},"2065":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":104902.51},"2066":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":112770.68},"2067":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":121189.63},"2068":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":130197.9},"2069":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":139836.76},"2070":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":150150.33},"2071":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":161185.85},"2072":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":172993.86},"2073":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-360000,"Return %":0.07,"Interest Earned":185103.43},"2074":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-370800,"Return %":0.07,"Interest Earned":172860.67},"2075":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-381924,"Return %":0.07,"Interest Earned":159004.92}},"Roth IRA Julie":{"2020":{"Personal Contributions":600,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0,"Interest Earned":0},"2021":{"Personal Contributions":600,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0,"Interest Earned":0},"2022":{"Personal Contributions":600,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0,"Interest Earned":0},"2023":{"Personal Contributions":600,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0,"Interest Earned":0},"2024":{"Personal Contributions":600,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0,"Interest Earned":20.11},"2025":{"Personal Contributions":2785.85,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.033513,"Interest Earned":196.9},"2026":{"Personal Contributions":7332,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.1083,"Interest Earned":1451.68},"2027":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1564.91},"2028":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2199.46},"2029":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2878.42},"2030":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3604.91},"2031":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4382.25},"2032":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":5214.01},"2033":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":6103.99},"2034":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":7056.27},"2035":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":8075.21},"2036":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":9165.47},"2037":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":10332.05},"2038":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":11580.3},"2039":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":12915.92},"2040":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":14345.03},"2041":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":15874.19},"2042":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":17510.38},"2043":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":19261.1},"2044":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":21134.38},"2045":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":23138.79},"2046":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":25283.5},"2047":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":27578.35},"2048":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":30033.83},"2049":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":32661.2},"2050":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":35472.49},"2051":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":38480.56},"2052":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":41699.2},"2053":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":45143.14},"2054":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":48828.16},"2055":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":52771.13},"2056":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":56990.11},"2057":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":61504.42},"2058":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":66334.73},"2059":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":71503.16},"2060":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":77033.38},"2061":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":82950.72},"2062":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":89282.27},"2063":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":96057.03},"2064":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":103306.02},"2065":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":111062.44},"2066":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":119361.82},"2067":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":128242.14},"2068":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":137744.09},"2069":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":147911.18},"2070":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":158789.96},"2071":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":170430.26},"2072":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":182885.38},"2073":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":196212.35},"2074":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":210472.22},"2075":{"Personal Contributions":7500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":225730.27}},"403b":{"2021":{"Personal Contributions":6064.87,"Comp Match":2688.01,"Fees":-22.5,"Withdrawals":0,"Return %":0.15,"Interest Earned":452.38},"2022":{"Personal Contributions":8516.72,"Comp Match":4123.22,"Fees":-30,"Withdrawals":0,"Return %":-0.174,"Interest Earned":-2227.47},"2023":{"Personal Contributions":10348.16,"Comp Match":4578.52,"Fees":-30,"Withdrawals":0,"Return %":0.202,"Interest Earned":5527.8},"2024":{"Personal Contributions":12233.62,"Comp Match":4978.55,"Fees":-29,"Withdrawals":0,"Return %":0.146,"Interest Earned":6853.12},"2025":{"Personal Contributions":13796.4,"Comp Match":5200.62,"Fees":-27,"Withdrawals":0,"Return %":0.214,"Interest Earned":16049.59},"2026":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.1217,"Interest Earned":14238.46},"2027":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":10443},"2028":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":12430.56},"2029":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":14557.26},"2030":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":16832.82},"2031":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":19267.68},"2032":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":21872.97},"2033":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":24660.63},"2034":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":27643.43},"2035":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":30835.03},"2036":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":34250.04},"2037":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":37904.1},"2038":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":41813.94},"2039":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":45997.47},"2040":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":50473.85},"2041":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":55263.58},"2042":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":60388.58},"2043":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":65872.34},"2044":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":71739.96},"2045":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":78018.31},"2046":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":84736.15},"2047":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":91924.24},"2048":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":99615.49},"2049":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":107845.13},"2050":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":116650.84},"2051":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":126072.96},"2052":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":136154.62},"2053":{"Personal Contributions":12631.2,"Comp Match":5319.6,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":104958.57},"2054":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":110206.5},"2055":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":115716.83},"2056":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":121502.67},"2057":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":127577.8},"2058":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":133956.69},"2059":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":140654.52},"2060":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":147687.25},"2061":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":155071.61},"2062":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":162825.19},"2063":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":170966.45},"2064":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":179514.78},"2065":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":188490.52},"2066":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-149369.84,"Return %":0.05,"Interest Earned":197915.04},"2067":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-157131.22,"Return %":0.05,"Interest Earned":200342.3},"2068":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-164636.47,"Return %":0.05,"Interest Earned":202502.86},"2069":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-172486.22,"Return %":0.05,"Interest Earned":204396.17},"2070":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-179905.39,"Return %":0.05,"Interest Earned":205991.67},"2071":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-188450.9,"Return %":0.05,"Interest Earned":207295.99},"2072":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-197382.22,"Return %":0.05,"Interest Earned":208238.24},"2073":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-206713.9,"Return %":0.05,"Interest Earned":208781.04},"2074":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-215344.74,"Return %":0.05,"Interest Earned":208884.4},"2075":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-225471.76,"Return %":0.05,"Interest Earned":208561.38}},"Hawke 401k":{"2024":{"Personal Contributions":6347.5,"Comp Match":0,"Fees":-20.24,"Withdrawals":0,"Return %":0.011225,"Interest Earned":91.49},"2025":{"Personal Contributions":9605.93,"Comp Match":1769.65,"Fees":-20,"Withdrawals":0,"Return %":0.0956,"Interest Earned":1700.17},"2026":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.073,"Interest Earned":1664.73},"2027":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1944.55},"2028":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2312.36},"2029":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2705.93},"2030":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3127.04},"2031":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3577.64},"2032":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4059.77},"2033":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4575.66},"2034":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":5127.65},"2035":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":5718.29},"2036":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":6350.27},"2037":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":7026.49},"2038":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":7750.04},"2039":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":8524.24},"2040":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":9352.64},"2041":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":10239.03},"2042":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":11187.46},"2043":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":12202.28},"2044":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":13288.14},"2045":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":14450.01},"2046":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":15693.21},"2047":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":17023.43},"2048":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":18446.78},"2049":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":19969.75},"2050":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":21599.33},"2051":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":23342.99},"2052":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":25208.69},"2053":{"Personal Contributions":2200,"Comp Match":1110,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":19432.15},"2054":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":20403.75},"2055":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":21423.94},"2056":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":22495.14},"2057":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":23619.89},"2058":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":24800.89},"2059":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":26040.93},"2060":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":27342.98},"2061":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":28710.13},"2062":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":30145.63},"2063":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":31652.92},"2064":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":33235.56},"2065":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-26337.62,"Return %":0.05,"Interest Earned":33580.46},"2066":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-27654.5,"Return %":0.05,"Interest Earned":33876.76},"2067":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-28919.18,"Return %":0.05,"Interest Earned":34124.64},"2068":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-30237.02,"Return %":0.05,"Interest Earned":34319.02},"2069":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-31471.59,"Return %":0.05,"Interest Earned":34461.39},"2070":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-32894.96,"Return %":0.05,"Interest Earned":34539.71},"2071":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-34376.02,"Return %":0.05,"Interest Earned":34547.9},"2072":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-35916.13,"Return %":0.05,"Interest Earned":34479.48},"2073":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-37323.15,"Return %":0.05,"Interest Earned":34337.3},"2074":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-38977.48,"Return %":0.05,"Interest Earned":34105.29},"2075":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-40463.9,"Return %":0.05,"Interest Earned":33787.36}},"AIG 401K":{"2020":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":684.84},"2021":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":732.78},"2022":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.135872,"Interest Earned":1521.92},"2023":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.2023235,"Interest Earned":2574.17},"2024":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.1465597,"Interest Earned":2241.95},"2025":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.2153,"Interest Earned":3775.96},"2026":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.1221,"Interest Earned":2602.58},"2027":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1674.24},"2028":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1791.44},"2029":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1916.84},"2030":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2051.01},"2031":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2194.59},"2032":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2348.21},"2033":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2512.58},"2034":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2688.46},"2035":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2876.65},"2036":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3078.02},"2037":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3293.48},"2038":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3524.02},"2039":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3770.71},"2040":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4034.66},"2041":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4317.08},"2042":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4619.28},"2043":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4942.63},"2044":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":5288.61},"2045":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":5658.81},"2046":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":6054.93},"2047":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":6478.78},"2048":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":6932.29},"2049":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":7417.55},"2050":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":7936.78},"2051":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":8492.35},"2052":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":9086.82},"2053":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":6944.93},"2054":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":7292.17},"2055":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":7656.78},"2056":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":8039.62},"2057":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":8441.6},"2058":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":8863.68},"2059":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":9306.86},"2060":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":9772.21},"2061":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":10260.82},"2062":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":10773.86},"2063":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":11312.55},"2064":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":11878.18},"2065":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":12472.09},"2066":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-9883.54,"Return %":0.05,"Interest Earned":12601.52},"2067":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-10377.72,"Return %":0.05,"Interest Earned":12712.7},"2068":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-10852.31,"Return %":0.05,"Interest Earned":12805.72},"2069":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-11346.84,"Return %":0.05,"Interest Earned":12878.67},"2070":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-11810.13,"Return %":0.05,"Interest Earned":12932.1},"2071":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-12344.27,"Return %":0.05,"Interest Earned":12961.49},"2072":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-12900.06,"Return %":0.05,"Interest Earned":12964.56},"2073":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-13478.01,"Return %":0.05,"Interest Earned":12938.89},"2074":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-14006.01,"Return %":0.05,"Interest Earned":12885.53},"2075":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-14626.82,"Return %":0.05,"Interest Earned":12798.47}},"Simply BE 401k":{"2023":{"Personal Contributions":2856.13,"Comp Match":1714.95,"Fees":-0.82,"Withdrawals":0,"Return %":0.06887,"Interest Earned":314.83},"2024":{"Personal Contributions":197.92,"Comp Match":118.75,"Fees":-40.4,"Withdrawals":0,"Return %":0.1307,"Interest Earned":679.98},"2025":{"Personal Contributions":0,"Comp Match":0,"Fees":-55.69,"Withdrawals":0,"Return %":0.182311,"Interest Earned":1072.49},"2026":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.1151,"Interest Earned":800.55},"2027":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":542.9},"2028":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":580.91},"2029":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":621.57},"2030":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":665.08},"2031":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":711.64},"2032":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":761.45},"2033":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":814.75},"2034":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":871.79},"2035":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":932.81},"2036":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":998.11},"2037":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1067.98},"2038":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1142.73},"2039":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1222.72},"2040":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1308.32},"2041":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1399.9},"2042":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1497.89},"2043":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1602.74},"2044":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1714.93},"2045":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1834.98},"2046":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1963.43},"2047":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2100.87},"2048":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2247.93},"2049":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2405.28},"2050":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2573.65},"2051":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2753.81},"2052":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2946.58},"2053":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":2252.03},"2054":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":2364.63},"2055":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":2482.86},"2056":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":2607},"2057":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":2737.35},"2058":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":2874.22},"2059":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":3017.93},"2060":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":3168.83},"2061":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":3327.27},"2062":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":3493.63},"2063":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":3668.31},"2064":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.05,"Interest Earned":3851.73},"2065":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-3052.31,"Return %":0.05,"Interest Earned":3891.7},"2066":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-3204.93,"Return %":0.05,"Interest Earned":3926.04},"2067":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-3351.5,"Return %":0.05,"Interest Earned":3954.77},"2068":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-3504.22,"Return %":0.05,"Interest Earned":3977.29},"2069":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-3647.3,"Return %":0.05,"Interest Earned":3993.79},"2070":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-3812.26,"Return %":0.05,"Interest Earned":4002.87},"2071":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-3983.9,"Return %":0.05,"Interest Earned":4003.82},"2072":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-4162.39,"Return %":0.05,"Interest Earned":3995.89},"2073":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-4325.45,"Return %":0.05,"Interest Earned":3979.41},"2074":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-4517.17,"Return %":0.05,"Interest Earned":3952.52},"2075":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-4689.44,"Return %":0.05,"Interest Earned":3915.68}},"529 Plan":{"2025":{"Personal Contributions":2620,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07098,"Interest Earned":185.97},"2026":{"Personal Contributions":4080,"Comp Match":700,"Fees":0,"Withdrawals":0,"Return %":0.1902,"Interest Earned":1442.84},"2027":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":917.61},"2028":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1267.45},"2029":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":1641.77},"2030":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2042.29},"2031":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2470.85},"2032":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":2929.41},"2033":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3420.07},"2034":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":3945.08},"2035":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":4506.83},"2036":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":5107.91},"2037":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":5751.06},"2038":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":6439.24},"2039":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":7175.58},"2040":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":7963.48},"2041":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":8806.52},"2042":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.07,"Interest Earned":9708.58},"2043":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":-47000,"Return %":0.07,"Interest Earned":10673.78},"2044":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":-47000,"Return %":0.07,"Interest Earned":8416.54},"2045":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":-47000,"Return %":0.07,"Interest Earned":6001.3},"2046":{"Personal Contributions":4080,"Comp Match":0,"Fees":0,"Withdrawals":-52231.11,"Return %":0.07,"Interest Earned":3416.99}},"HYSA":{"2023":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.000355,"Interest Earned":23.82},"2024":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":-47798,"Return %":0.0354,"Interest Earned":863.65},"2025":{"Personal Contributions":3600,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0387,"Interest Earned":920.82},"2026":{"Personal Contributions":4500,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1034.04},"2027":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1070.65},"2028":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1108.55},"2029":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1147.79},"2030":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1188.42},"2031":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1230.5},"2032":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1274.05},"2033":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1319.16},"2034":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1365.85},"2035":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1414.21},"2036":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1464.27},"2037":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1516.1},"2038":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1569.77},"2039":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1625.34},"2040":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1682.88},"2041":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1742.45},"2042":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1804.14},"2043":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1868},"2044":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":1934.13},"2045":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2002.6},"2046":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2073.49},"2047":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2146.89},"2048":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2222.89},"2049":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2301.58},"2050":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2383.06},"2051":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2467.42},"2052":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2554.77},"2053":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2645.21},"2054":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2738.85},"2055":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2835.8},"2056":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":2936.19},"2057":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":3040.13},"2058":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":3147.75},"2059":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":3259.18},"2060":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":3374.56},"2061":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":3494.01},"2062":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":3617.7},"2063":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":3745.77},"2064":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":3878.37},"2065":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":4015.66},"2066":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":4157.82},"2067":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":4305.01},"2068":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":4457.4},"2069":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":4615.19},"2070":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":4778.57},"2071":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":4947.73},"2072":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":5122.88},"2073":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":5304.23},"2074":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":5492},"2075":{"Personal Contributions":0,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.0354,"Interest Earned":5686.42}},"Brokerage":{"2026":{"Personal Contributions":495,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":39.6},"2027":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":234.77},"2028":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":445.55},"2029":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":673.19},"2030":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":919.05},"2031":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":1184.57},"2032":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":1471.34},"2033":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":1781.05},"2034":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":2115.53},"2035":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":2476.77},"2036":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":2866.91},"2037":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":3288.27},"2038":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":3743.33},"2039":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":4234.79},"2040":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":4765.58},"2041":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":7066.82},"2042":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":9552.17},"2043":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":12236.34},"2044":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":15135.25},"2045":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":18266.07},"2046":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":21647.36},"2047":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":25299.14},"2048":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":29243.08},"2049":{"Personal Contributions":24000,"Comp Match":0,"Fees":0,"Withdrawals":0,"Return %":0.08,"Interest Earned":33502.52},"2050":{"Personal Contributions":2400,"Comp Match":800000,"Fees":0,"Withdrawals":-18091.36,"Return %":0.08,"Interest Earned":100374.72},"2051":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-53478.7,"Return %":0.08,"Interest Earned":107149.39},"2052":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-55721.52,"Return %":0.08,"Interest Earned":111635.05},"2053":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-58054.07,"Return %":0.08,"Interest Earned":116300.13},"2054":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-60479.91,"Return %":0.08,"Interest Earned":121151.82},"2055":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-63002.78,"Return %":0.08,"Interest Earned":126197.57},"2056":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-65626.58,"Return %":0.08,"Interest Earned":131445.15},"2057":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-68355.32,"Return %":0.08,"Interest Earned":136902.64},"2058":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-71193.21,"Return %":0.08,"Interest Earned":142578.42},"2059":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-74144.62,"Return %":0.08,"Interest Earned":148481.24},"2060":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-77214.08,"Return %":0.08,"Interest Earned":154620.17},"2061":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-80406.33,"Return %":0.08,"Interest Earned":161004.66},"2062":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-83726.26,"Return %":0.08,"Interest Earned":167644.52},"2063":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-87179,"Return %":0.08,"Interest Earned":174549.98},"2064":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-90769.83,"Return %":0.08,"Interest Earned":181731.66},"2065":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-94504.3,"Return %":0.08,"Interest Earned":189200.61},"2066":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-98388.16,"Return %":0.08,"Interest Earned":196968.31},"2067":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-102427.36,"Return %":0.08,"Interest Earned":205046.73},"2068":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-106628.14,"Return %":0.08,"Interest Earned":213448.28},"2069":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-110996.94,"Return %":0.08,"Interest Earned":222185.89},"2070":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-115540.5,"Return %":0.08,"Interest Earned":231273},"2071":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-120265.8,"Return %":0.08,"Interest Earned":240723.6},"2072":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-125180.11,"Return %":0.08,"Interest Earned":250552.23},"2073":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-130291,"Return %":0.08,"Interest Earned":260774},"2074":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-135606.32,"Return %":0.08,"Interest Earned":271404.64},"2075":{"Personal Contributions":2400,"Comp Match":0,"Fees":0,"Withdrawals":-141134.25,"Return %":0.08,"Interest Earned":282460.5}}};
+
+const STATIC={"House Amortization":{type:"Equity",person:"Joint",data:{2024:71318,2025:81183,2026:77960,2027:85182,2028:92878,2029:101078,2030:109818,2031:119131,2032:129055,2033:139631,2034:150901,2035:162911,2036:175709,2037:189347,2038:203881,2039:219369,2040:535874,2041:565000,2042:565000,2043:565000,2044:565000,2045:565000,2046:565000,2047:565000,2048:565000,2049:565000,2050:565000,2051:565000,2052:565000,2053:565000,2054:565000,2055:565000,2056:565000,2057:565000,2058:565000,2059:565000,2060:565000,2061:565000,2062:565000,2063:565000,2064:565000,2065:565000,2066:565000,2067:565000,2068:565000,2069:565000,2070:565000,2071:565000,2072:565000,2073:565000,2074:565000,2075:565000}},"Jeep":{type:"Personal Asset",person:"Kevin",data:{2024:14500,2025:10000,2026:9150,2027:7400,2028:6600,2029:5800,2030:5100,2031:4400,2032:3750,2033:3100,2034:2500,2035:1900,2036:1400,2037:900,2038:500,2039:200,2040:0}},"Toyota":{type:"Personal Asset",person:"Julie",data:{2025:11000,2026:10250,2027:9500,2028:8850,2029:8100,2030:7450}}};
+
+const META={"Kevin Roth IRA":{type:"Post Tax Retirement",person:"Kevin"},"Roth IRA Julie":{type:"Post Tax Retirement",person:"Julie"},"403b":{type:"Pre Tax Retirement",person:"Kevin"},"Hawke 401k":{type:"Pre Tax Retirement",person:"Julie"},"AIG 401K":{type:"Pre Tax Retirement",person:"Kevin"},"Simply BE 401k":{type:"Pre Tax Retirement",person:"Julie"},"529 Plan":{type:"Education",person:"Joint"},"HYSA":{type:"Savings",person:"Joint"},"Brokerage":{type:"Brokerage",person:"Kevin"}};
+const CAT_ORDER=["Pre Tax Retirement","Post Tax Retirement","Brokerage","Savings","Education","Equity","Personal Asset"];
+const CAT_COLORS={"Pre Tax Retirement":"#2563eb","Post Tax Retirement":"#10b981","Brokerage":"#f59e0b","Savings":"#8b5cf6","Education":"#ef4444","Equity":"#06b6d4","Personal Asset":"#f97316"};
+const CAT_LABELS={"Pre Tax Retirement":"Pre-Tax Retirement","Post Tax Retirement":"Post-Tax Retirement","Brokerage":"Brokerage","Savings":"HYSA / Savings","Education":"529 / Education","Equity":"Home Equity","Personal Asset":"Personal Assets"};
+const SC={"Kevin Roth IRA":"#10b981","Roth IRA Julie":"#34d399","403b":"#2563eb","Hawke 401k":"#3b82f6","AIG 401K":"#1d4ed8","Simply BE 401k":"#60a5fa","529 Plan":"#ef4444","HYSA":"#8b5cf6","Brokerage":"#f59e0b","House Amortization":"#06b6d4","Jeep":"#f97316","Toyota":"#fb923c"};
+const CS=["Kevin Roth IRA","Roth IRA Julie","403b","Hawke 401k","AIG 401K","Simply BE 401k","529 Plan","HYSA","Brokerage"];
+
+const fmt=n=>{if(Math.abs(n)>=1e6)return`$${(n/1e6).toFixed(2)}M`;if(Math.abs(n)>=1e3)return`$${(n/1e3).toFixed(1)}K`;return`$${Math.round(n)}`;};
+const fmtF=n=>`$${Math.round(n).toLocaleString()}`;
+const pct=(n,t)=>t>0?((n/t)*100).toFixed(1):"0.0";
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const SK="girsch_v3";
+let cd;
+try{const s=localStorage.getItem(SK);cd=s?JSON.parse(s):JSON.parse(JSON.stringify(IC));}catch(e){cd=JSON.parse(JSON.stringify(IC));}
+const persist=()=>{try{localStorage.setItem(SK,JSON.stringify(cd));}catch(e){}};
+let tab=0,y1=2026,y2=2026,trendSheet="403b";
+
+// ── ENGINE ────────────────────────────────────────────────────────────────────
+// Back-solve opening balance from first year's Interest Earned: interest = opening * ROR
+function buildBalances(data){
+  const r={};
+  for(const sh of CS){
+    const sd=data[sh];if(!sd)continue;
+    const yrs=Object.keys(sd).map(Number).sort((a,b)=>a-b);
+    if(!yrs.length)continue;
+    const fd=sd[yrs[0]];
+    const ror0=fd["Return %"]||0;
+    let bal=ror0!==0?(fd["Interest Earned"]||0)/ror0:0;
+    bal=Math.max(0,bal);
+    const b={};
+    for(const y of yrs){
+      const d=sd[y];
+      bal=bal+bal*(d["Return %"]||0)+(d["Personal Contributions"]||0)+(d["Comp Match"]||0)+(d["Withdrawals"]||0)+(d["Fees"]||0);
+      bal=Math.max(0,bal);b[y]=bal;
+    }
+    r[sh]=b;
+  }
+  return r;
+}
+function getPV(pb,sh,y){
+  const d=pb[sh];if(!d)return 0;
+  if(d[y]!==undefined)return d[y];
+  const ys=Object.keys(d).map(Number).sort((a,b)=>a-b);
+  const bef=ys.filter(x=>x<=y);return bef.length?d[bef[bef.length-1]]:0;
+}
+function getSV(sh,y){
+  const d=STATIC[sh]?.data;if(!d)return 0;
+  if(d[y]!==undefined)return d[y];
+  const ys=Object.keys(d).map(Number).sort((a,b)=>a-b);
+  const bef=ys.filter(x=>x<=y);return bef.length?d[bef[bef.length-1]]:0;
+}
+function getD(sh,y){return cd[sh]?.[y]||cd[sh]?.[String(y)]||null;}
+
+// ── SVG CHARTS (no dependencies) ─────────────────────────────────────────────
+function svgStackedBar(datasets,labels,W,H){
+  const PL=42,PR=8,PT=8,PB=28;
+  const w=W-PL-PR,h=H-PT-PB;
+  const n=labels.length;
+  const totals=labels.map((_,i)=>datasets.reduce((s,ds)=>s+Math.max(0,ds.data[i]||0),0));
+  const maxV=Math.max(...totals,1);
+  const barW=Math.max(4,Math.floor(w/n)-2);
+  let svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible">`;
+  // grid lines
+  for(let i=0;i<=4;i++){
+    const yy=PT+h-(h*i/4);
+    const v=maxV*i/4;
+    svg+=`<line x1="${PL}" y1="${yy}" x2="${PL+w}" y2="${yy}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    svg+=`<text x="${PL-4}" y="${yy+3}" text-anchor="end" fill="#475569" font-size="9" font-family="monospace">${fmt(v)}</text>`;
+  }
+  // bars
+  labels.forEach((lbl,i)=>{
+    const x=PL+i*(w/n)+(w/n-barW)/2;
+    let yOff=0;
+    datasets.forEach(ds=>{
+      const v=Math.max(0,ds.data[i]||0);
+      if(v<=0)return;
+      const bh=Math.max(1,(v/maxV)*h);
+      const by=PT+h-yOff-bh;
+      svg+=`<rect x="${x}" y="${by}" width="${barW}" height="${bh}" fill="${ds.color}" rx="1"/>`;
+      yOff+=bh;
+    });
+    // x label
+    if(typeof lbl==="number"?lbl%5===0:true){
+      svg+=`<text x="${x+barW/2}" y="${PT+h+16}" text-anchor="middle" fill="#475569" font-size="9" font-family="monospace">${lbl}</text>`;
+    }
+  });
+  svg+=`</svg>`;return svg;
+}
+
+function svgDonut(slices,W,H){
+  const cx=W/2,cy=H/2,ro=Math.min(W,H)/2-4,ri=ro*0.58;
+  const total=slices.reduce((s,x)=>s+x.value,0);
+  if(total<=0)return`<svg width="${W}" height="${H}"></svg>`;
+  let angle=-Math.PI/2,svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  slices.forEach(sl=>{
+    const sweep=(sl.value/total)*2*Math.PI;
+    const a1=angle,a2=angle+sweep-0.02;
+    const x1=cx+ro*Math.cos(a1),y1=cy+ro*Math.sin(a1);
+    const x2=cx+ro*Math.cos(a2),y2=cy+ro*Math.sin(a2);
+    const x3=cx+ri*Math.cos(a2),y3=cy+ri*Math.sin(a2);
+    const x4=cx+ri*Math.cos(a1),y4=cy+ri*Math.sin(a1);
+    const lg=sweep>Math.PI?1:0;
+    svg+=`<path d="M${x1},${y1} A${ro},${ro} 0 ${lg},1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${lg},0 ${x4},${y4} Z" fill="${sl.color}"/>`;
+    angle+=sweep;
+  });
+  svg+=`</svg>`;return svg;
+}
+
+function svgGroupedBar(groups,keys,colors,W,H){
+  const PL=42,PR=8,PT=8,PB=44;
+  const w=W-PL-PR,h=H-PT-PB;
+  const n=groups.length,k=keys.length;
+  const maxV=Math.max(...groups.flatMap(g=>keys.map(key=>Math.abs(g[key]||0))),1);
+  const groupW=w/n,barW=Math.max(3,Math.floor(groupW/k)-1);
+  let svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible">`;
+  for(let i=0;i<=4;i++){
+    const yy=PT+h*(1-i/4);
+    svg+=`<line x1="${PL}" y1="${yy}" x2="${PL+w}" y2="${yy}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    svg+=`<text x="${PL-4}" y="${yy+3}" text-anchor="end" fill="#475569" font-size="9" font-family="monospace">${fmt(maxV*i/4)}</text>`;
+  }
+  groups.forEach((g,gi)=>{
+    const gx=PL+gi*groupW;
+    keys.forEach((key,ki)=>{
+      const v=Math.abs(g[key]||0);
+      if(v<=0)return;
+      const bh=Math.max(1,(v/maxV)*h);
+      const bx=gx+(groupW-k*barW)/2+ki*barW;
+      const by=PT+h-bh;
+      svg+=`<rect x="${bx}" y="${by}" width="${barW}" height="${bh}" fill="${colors[ki]}" rx="1"/>`;
+    });
+    const lbl=g.name||g.year||"";
+    svg+=`<text x="${gx+groupW/2}" y="${PT+h+12}" text-anchor="middle" fill="#475569" font-size="8" font-family="monospace" transform="rotate(-30,${gx+groupW/2},${PT+h+12})">${lbl}</text>`;
+  });
+  svg+=`</svg>`;return svg;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function render(){
+  const pb=buildBalances(cd);
+  document.getElementById("app").innerHTML=buildHTML(pb);
+  attachEvents();
+}
+
+function buildHTML(pb){
+  const pb_=pb;
+  // summary data
+  let total=0;const bySheet={};const byCat={};
+  for(const sh of CS){const v=getPV(pb_,sh,y1);bySheet[sh]=v;const t=META[sh].type;byCat[t]=(byCat[t]||0)+v;total+=v;}
+  for(const[sh,i]of Object.entries(STATIC)){const v=getSV(sh,y1);bySheet[sh]=v;byCat[i.type]=(byCat[i.type]||0)+v;total+=v;}
+  const ages={Kevin:33+(y1-2026),Julie:34+(y1-2026),Adam:1+(y1-2026)};
+
+  // contrib data
+  let totP=0,totM=0,totI=0,totW=0;const bySheetC={};
+  for(const sh of CS){const d=getD(sh,y2);if(d){totP+=d["Personal Contributions"]||0;totM+=d["Comp Match"]||0;totI+=d["Interest Earned"]||0;totW+=Math.abs(d["Withdrawals"]||0);bySheetC[sh]=d;}}
+
+  // NW chart data
+  const nwYrs=[];for(let y=2020;y<=2075;y+=2)nwYrs.push(y);
+  const allSh=[...CS,...Object.keys(STATIC)];
+  const nwDatasets=allSh.map(sh=>({color:SC[sh]||"#888",data:nwYrs.map(y=>CS.includes(sh)?getPV(pb_,sh,y):getSV(sh,y))}));
+  const nwChart=svgStackedBar(nwDatasets,nwYrs,Math.min(560,window.innerWidth-52),190);
+
+  // activity chart
+  const actGroups=CS.map(sh=>{const d=getD(sh,y2);return{name:sh.replace(" 401k","").replace(" IRA","").replace(" Plan",""),Personal:d?d["Personal Contributions"]||0:0,Match:d?d["Comp Match"]||0:0,Interest:d?d["Interest Earned"]||0:0,Withdrawals:d?Math.abs(d["Withdrawals"]||0):0};}).filter(g=>g.Personal+g.Match+g.Interest+g.Withdrawals>0);
+  const actChart=svgGroupedBar(actGroups,["Personal","Match","Interest","Withdrawals"],["#3b82f6","#10b981","#f59e0b","#ef4444"],Math.min(560,window.innerWidth-52),200);
+
+  // trend chart
+  const tYrs=[];for(let y=2020;y<=2075;y++)tYrs.push(y);
+  const trendGroups=tYrs.map(y=>{const d=getD(trendSheet,y);return{year:y,Personal:d?d["Personal Contributions"]||0:0,Match:d?d["Comp Match"]||0:0,Interest:d?d["Interest Earned"]||0:0,Withdrawals:d?Math.abs(d["Withdrawals"]||0):0};});
+  const trendDatasets=[{color:"#3b82f6",data:trendGroups.map(g=>g.Personal)},{color:"#10b981",data:trendGroups.map(g=>g.Match)},{color:"#f59e0b",data:trendGroups.map(g=>g.Interest)},{color:"#ef4444",data:trendGroups.map(g=>g.Withdrawals)}];
+  const trendChart=svgStackedBar(trendDatasets,tYrs,Math.min(560,window.innerWidth-52),190);
+
+  // donut slices
+  const donutSlices=CAT_ORDER.filter(c=>byCat[c]>0).map(c=>({color:CAT_COLORS[c],value:byCat[c]}));
+  const donutW=Math.min(220,window.innerWidth-80);
+  const donut=svgDonut(donutSlices,donutW,donutW);
+
+  const sliderTicks=[2020,2025,2030,2035,2040,2045,2050,2055,2060,2065,2070,2075];
+
+  return `
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+  <div>
+    <h1 style="font-size:21px;font-weight:700;color:#f8fafc;letter-spacing:-.5px">Girsch Household</h1>
+    <p style="margin-top:2px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Investment Dashboard</p>
+  </div>
+  <button class="reset-btn" onclick="resetData()">↺ Reset</button>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn ${tab===0?"active":""}" onclick="switchTab(0)">📊 Summary</button>
+  <button class="tab-btn ${tab===1?"active":""}" onclick="switchTab(1)">💰 Contributions</button>
+</div>
+
+${tab===0?`
+<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+  ${Object.entries(ages).map(([n,a])=>`<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 12px"><div style="font-size:10px;color:#64748b">${n}</div><div style="font-size:14px;font-weight:700;color:#e2e8f0;font-family:monospace">Age ${a}</div></div>`).join("")}
+  <div style="flex:1;background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(16,185,129,.1));border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:7px 12px;min-width:140px">
+    <div style="font-size:10px;color:#64748b;text-transform:uppercase">Net Worth ${y1}</div>
+    <div style="font-size:20px;font-weight:700;color:#f8fafc;font-family:serif">${fmtF(total)}</div>
+  </div>
+</div>
+
+<div class="slider-card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <span style="font-size:12px;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.5px">Report Year</span>
+    <span style="font-size:28px;font-weight:700;color:#3b82f6;font-family:serif">${y1}</span>
+  </div>
+  <input type="range" min="2020" max="2075" value="${y1}" oninput="setY1(+this.value)"/>
+  <div class="tick-row">${sliderTicks.map(y=>`<span class="tick${y===y1?" active":""}" onclick="setY1(${y})">${y}</span>`).join("")}</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Account Breakdown by Category</div>
+  ${CAT_ORDER.map(cat=>{
+    const entries=Object.entries(bySheet).filter(([sh])=>(META[sh]||STATIC[sh])?.type===cat&&bySheet[sh]>0);
+    if(!entries.length)return"";
+    const catTot=entries.reduce((s,[,v])=>s+v,0);
+    if(catTot<=0)return"";
+    const catP=pct(catTot,total);
+    const cc=CAT_COLORS[cat];
+    return`<div style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:10px;height:10px;border-radius:3px;background:${cc}"></div>
+          <span style="font-size:12px;font-weight:700;color:#cbd5e1">${CAT_LABELS[cat]}</span>
+        </div>
+        <div>
+          <span style="font-size:13px;font-family:monospace;color:#f8fafc;font-weight:700">${fmtF(catTot)}</span>
+          <span style="font-size:10px;color:#475569;font-family:monospace;margin-left:6px">${catP}%</span>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:2px;height:4px;overflow:hidden;margin-bottom:10px">
+        <div style="width:${catP}%;height:100%;background:${cc};border-radius:2px"></div>
+      </div>
+      ${entries.sort((a,b)=>b[1]-a[1]).map(([sh,val])=>{
+        const pp=pct(val,catTot);
+        return`<div style="margin-bottom:8px;padding-left:14px;border-left:2px solid ${SC[sh]||cc}40">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+            <div style="display:flex;align-items:center;gap:5px">
+              <div style="width:6px;height:6px;border-radius:50%;background:${SC[sh]||cc};flex-shrink:0"></div>
+              <span style="font-size:12px;color:#e2e8f0;font-weight:600">${sh}</span>
+              <span style="font-size:10px;color:#475569">${(META[sh]||STATIC[sh])?.person}</span>
+            </div>
+            <div style="text-align:right;margin-left:8px;flex-shrink:0">
+              <span style="font-size:12px;font-family:monospace;color:#cbd5e1;font-weight:600">${fmtF(val)}</span>
+              <span style="font-size:10px;color:#475569;font-family:monospace;margin-left:5px">${pp}%</span>
+            </div>
+          </div>
+          <div style="margin-left:11px;background:rgba(255,255,255,0.05);border-radius:2px;height:3px;overflow:hidden">
+            <div style="width:${pp}%;height:100%;background:${SC[sh]||cc};border-radius:2px;opacity:.7"></div>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }).join("")}
+</div>
+
+<div class="card">
+  <div class="card-title">Portfolio by Category</div>
+  <div style="display:flex;justify-content:center;margin-bottom:12px">${donut}</div>
+  ${CAT_ORDER.filter(c=>byCat[c]>0).map(c=>`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div style="display:flex;align-items:center;gap:7px"><div style="width:9px;height:9px;border-radius:50%;background:${CAT_COLORS[c]}"></div><span style="font-size:12px;color:#94a3b8">${CAT_LABELS[c]}</span></div>
+    <div style="display:flex;gap:10px"><span style="font-size:11px;color:#475569;font-family:monospace">${pct(byCat[c],total)}%</span><span style="font-size:12px;font-family:monospace;color:#e2e8f0;min-width:65px;text-align:right">${fmt(byCat[c])}</span></div>
+  </div>`).join("")}
+</div>
+
+<div class="card">
+  <div class="card-title">Net Worth Over Time</div>
+  <div style="overflow-x:auto">${nwChart}</div>
+  <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+    ${allSh.map(sh=>`<div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:2px;background:${SC[sh]}"></div><span style="font-size:9px;color:#475569">${sh}</span></div>`).join("")}
+  </div>
+</div>
+`:""}
+
+${tab===1?`
+<div class="slider-card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <span style="font-size:12px;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.5px">Activity Year</span>
+    <span style="font-size:28px;font-weight:700;color:#3b82f6;font-family:serif">${y2}</span>
+  </div>
+  <input type="range" min="2020" max="2075" value="${y2}" oninput="setY2(+this.value)"/>
+  <div class="tick-row">${sliderTicks.map(y=>`<span class="tick${y===y2?" active":""}" onclick="setY2(${y})">${y}</span>`).join("")}</div>
+</div>
+
+<div class="stat-row">
+  <div class="stat-box" style="border:1px solid #3b82f630"><div style="font-size:10px;color:#64748b;margin-bottom:3px">Personal</div><div style="font-size:15px;font-family:monospace;color:#3b82f6;font-weight:700">${fmt(totP)}</div></div>
+  <div class="stat-box" style="border:1px solid #10b98130"><div style="font-size:10px;color:#64748b;margin-bottom:3px">Match</div><div style="font-size:15px;font-family:monospace;color:#10b981;font-weight:700">${fmt(totM)}</div></div>
+  <div class="stat-box" style="border:1px solid #f59e0b30"><div style="font-size:10px;color:#64748b;margin-bottom:3px">Interest</div><div style="font-size:15px;font-family:monospace;color:#f59e0b;font-weight:700">${fmt(totI)}</div></div>
+  <div class="stat-box" style="border:1px solid #ef444430"><div style="font-size:10px;color:#64748b;margin-bottom:3px">Withdrawals</div><div style="font-size:15px;font-family:monospace;color:#ef4444;font-weight:700">${fmt(totW)}</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Activity by Account — ${y2}</div>
+  <div style="overflow-x:auto">${actChart}</div>
+  <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
+    ${[["Personal","#3b82f6"],["Match","#10b981"],["Interest","#f59e0b"],["Withdrawals","#ef4444"]].map(([l,c])=>`<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:${c}"></div><span style="font-size:11px;color:#64748b">${l}</span></div>`).join("")}
+  </div>
+</div>
+
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div class="card-title" style="margin:0">Account Detail — ${y2}</div>
+    <span style="font-size:10px;color:#475569">tap to edit</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th style="text-align:left">Account</th>
+        <th>Personal</th><th>Match</th><th>Interest</th><th>ROR</th><th>Withdrawals</th><th>Fees</th>
+      </tr></thead>
+      <tbody>
+        ${CS.map(sh=>{
+          const d=bySheetC[sh];if(!d)return"";
+          if(!(d["Personal Contributions"]||d["Comp Match"]||d["Interest Earned"]||d["Withdrawals"]||d["Fees"]||d["Return %"]))return"";
+          const yk=cd[sh]?.[y2]?y2:String(y2);
+          const ec=(val,field,fmtType,color)=>{
+            const disp=fmtType==="pct"?`${(val*100).toFixed(2)}%`:val===0?"—":val<0?`(${fmt(Math.abs(val))})`:fmt(val);
+            return`<span class="editable" style="color:${color}" contenteditable="true" data-sheet="${sh}" data-yr="${yk}" data-field="${field}" data-fmt="${fmtType}">${disp}</span>`;
+          };
+          return`<tr>
+            <td style="text-align:left"><div style="display:flex;align-items:center;gap:4px"><div style="width:6px;height:6px;border-radius:50%;background:${SC[sh]};flex-shrink:0"></div><span style="font-size:10px;color:#e2e8f0">${sh}</span></div></td>
+            <td>${ec(d["Personal Contributions"]||0,"Personal Contributions","dollar","#3b82f6")}</td>
+            <td>${ec(d["Comp Match"]||0,"Comp Match","dollar","#10b981")}</td>
+            <td>${ec(d["Interest Earned"]||0,"Interest Earned","dollar","#f59e0b")}</td>
+            <td>${ec(d["Return %"]||0,"Return %","pct","#a78bfa")}</td>
+            <td>${ec(d["Withdrawals"]||0,"Withdrawals","neg","#ef4444")}</td>
+            <td>${ec(d["Fees"]||0,"Fees","neg","#f87171")}</td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Annual Trend by Account</div>
+  <div class="pill-row">
+    ${CS.map(s=>`<button class="pill" style="${trendSheet===s?`background:${SC[s]};color:#fff`:""}" onclick="setTrend('${s}')">${s.replace(" 401k","").replace(" IRA","").replace(" Plan","")}</button>`).join("")}
+  </div>
+  <div style="overflow-x:auto">${trendChart}</div>
+  <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
+    ${[["Personal","#3b82f6"],["Match","#10b981"],["Interest","#f59e0b"],["Withdrawals","#ef4444"]].map(([l,c])=>`<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:${c}"></div><span style="font-size:11px;color:#64748b">${l}</span></div>`).join("")}
+  </div>
+</div>
+`:""}
+
+<div style="margin-top:14px;text-align:center;font-size:10px;color:#1e293b">Girsch Household · Projections are estimates</div>`;
+}
+
+function attachEvents(){
+  document.querySelectorAll(".editable").forEach(el=>{
+    el.addEventListener("focus",()=>{
+      const sh=el.dataset.sheet,yr=el.dataset.yr,field=el.dataset.field,ft=el.dataset.fmt;
+      const d=cd[sh]?.[yr]||cd[sh]?.[String(yr)];
+      if(!d)return;
+      const val=d[field]||0;
+      el.textContent=ft==="pct"?(val*100).toFixed(2):String(Math.round(Math.abs(val)));
+      setTimeout(()=>{const r=document.createRange(),s=window.getSelection();r.selectNodeContents(el);s.removeAllRanges();s.addRange(r);},10);
+    });
+    el.addEventListener("blur",()=>{
+      const sh=el.dataset.sheet,yr=el.dataset.yr,field=el.dataset.field,ft=el.dataset.fmt;
+      const n=parseFloat(el.textContent.replace(/[^0-9.\-]/g,""));
+      if(isNaN(n))return render();
+      let val=ft==="pct"?n/100:ft==="neg"?-Math.abs(n):n;
+      if(!cd[sh])cd[sh]={};
+      if(!cd[sh][yr])cd[sh][yr]={};
+      cd[sh][yr][field]=val;persist();render();
+    });
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();el.blur();}if(e.key==="Escape")render();});
+  });
+}
+
+window.switchTab=t=>{tab=t;render();};
+window.setY1=y=>{y1=y;render();};
+window.setY2=y=>{y2=y;render();};
+window.setTrend=s=>{trendSheet=s;render();};
+window.resetData=()=>{if(confirm("Reset all edits?")){cd=JSON.parse(JSON.stringify(IC));persist();render();}};
+
+render();
+</script>
+</body>
+</html>
