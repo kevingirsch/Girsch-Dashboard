@@ -15,7 +15,7 @@ input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3p
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#3b82f6;border:3px solid #1e40af;cursor:pointer;}
 .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px 18px;margin-bottom:14px;}
 .card-title{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:12px;}
-.tab-bar{display:flex;gap:5px;margin-bottom:18px;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,0.07);}
+.tab-bar{display:flex;gap:5px;margin-bottom:14px;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px;border:1px solid rgba(255,255,255,0.07);}
 .tab-btn{flex:1;padding:10px 6px;border-radius:9px;border:none;cursor:pointer;background:transparent;color:#64748b;font-weight:600;font-size:13px;transition:all .2s;}
 .tab-btn.active{background:rgba(59,130,246,0.25);color:#93c5fd;border-bottom:2px solid #3b82f6;}
 .stat-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
@@ -69,34 +69,25 @@ const SC={
   "529 Plan":"#ef4444","HYSA":"#8b5cf6","New Car Savings":"#a78bfa","Brokerage":"#f59e0b",
   "House Amortization":"#06b6d4","Jeep":"#f97316","Toyota":"#fb923c"
 };
-
-// Investment sheets tracked in IC (contributions tab)
 const CS=["Kevin Roth IRA","Roth IRA Julie","Adam ROTH IRA","403b","Hawke 401k","AIG 401K","Simply BE 401k","529 Plan","HYSA","Brokerage"];
 
 const fmt=n=>{if(Math.abs(n)>=1e6)return`$${(n/1e6).toFixed(2)}M`;if(Math.abs(n)>=1e3)return`$${(n/1e3).toFixed(1)}K`;return`$${Math.round(n)}`;};
 const fmtF=n=>`$${Math.round(n).toLocaleString()}`;
 const pct=(n,t)=>t>0?((n/t)*100).toFixed(1):"0.0";
 
-// ── STATE
 const SK="girsch_v4";
 let cd;
 try{const s=localStorage.getItem(SK);cd=s?JSON.parse(s):JSON.parse(JSON.stringify(IC));}catch(e){cd=JSON.parse(JSON.stringify(IC));}
 const persist=()=>{try{localStorage.setItem(SK,JSON.stringify(cd));}catch(e){}};
-let tab=0,y1=2026,y2=2026,trendSheet="403b";
+let tab=0,yr=2026,trendSheet="403b";
 
-// ── ENGINE
-// Use Ending Balance directly from data (Excel already computed it)
-function getEndBal(sh, y){
-  const d=cd[sh];
-  if(!d) return 0;
-  // Find exact year or nearest previous year
+function getEndBal(sh,y){
+  const d=cd[sh];if(!d)return 0;
   const yrs=Object.keys(d).map(Number).sort((a,b)=>a-b);
   const prev=yrs.filter(x=>x<=y);
-  if(!prev.length) return 0;
-  const nearest=prev[prev.length-1];
-  return Math.max(0, d[nearest]["Ending Balance"]||0);
+  if(!prev.length)return 0;
+  return Math.max(0,d[prev[prev.length-1]]["Ending Balance"]||0);
 }
-
 function getSV(sh,y){
   const d=STATIC[sh]?.data;if(!d)return 0;
   const ys=Object.keys(d).map(Number).sort((a,b)=>a-b);
@@ -104,18 +95,14 @@ function getSV(sh,y){
   if(!bef.length)return 0;
   return d[bef[bef.length-1]]||0;
 }
-
 function getD(sh,y){
-  const d=cd[sh];
-  if(!d) return null;
+  const d=cd[sh];if(!d)return null;
   return d[y]||d[String(y)]||null;
 }
 
-// SVG stacked bar
 function svgStackedBar(datasets,labels,W,H){
   const PL=46,PR=8,PT=8,PB=28;
-  const w=W-PL-PR,h=H-PT-PB;
-  const n=labels.length;
+  const w=W-PL-PR,h=H-PT-PB,n=labels.length;
   const totals=labels.map((_,i)=>datasets.reduce((s,ds)=>s+Math.max(0,ds.data[i]||0),0));
   const maxV=Math.max(...totals,1);
   const barW=Math.max(4,Math.floor(w/n)-2);
@@ -129,43 +116,32 @@ function svgStackedBar(datasets,labels,W,H){
     const x=PL+i*(w/n)+(w/n-barW)/2;
     let yOff=0;
     datasets.forEach(ds=>{
-      const v=Math.max(0,ds.data[i]||0);
-      if(v<=0)return;
-      const bh=Math.max(1,(v/maxV)*h);
-      const by=PT+h-yOff-bh;
+      const v=Math.max(0,ds.data[i]||0);if(v<=0)return;
+      const bh=Math.max(1,(v/maxV)*h),by=PT+h-yOff-bh;
       svg+=`<rect x="${x}" y="${by}" width="${barW}" height="${bh}" fill="${ds.color}" rx="1"/>`;
       yOff+=bh;
     });
-    if(typeof lbl==="number"?lbl%5===0:true){
+    if(typeof lbl==="number"?lbl%5===0:true)
       svg+=`<text x="${x+barW/2}" y="${PT+h+16}" text-anchor="middle" fill="#475569" font-size="9" font-family="monospace">${lbl}</text>`;
-    }
   });
-  svg+=`</svg>`;return svg;
+  return svg+`</svg>`;
 }
-
 function svgDonut(slices,W,H){
   const cx=W/2,cy=H/2,ro=Math.min(W,H)/2-4,ri=ro*0.58;
   const total=slices.reduce((s,x)=>s+x.value,0);
   if(total<=0)return`<svg width="${W}" height="${H}"></svg>`;
   let angle=-Math.PI/2,svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
   slices.forEach(sl=>{
-    const sweep=(sl.value/total)*2*Math.PI;
-    const a1=angle,a2=angle+sweep-0.02;
-    const x1=cx+ro*Math.cos(a1),y1=cy+ro*Math.sin(a1);
-    const x2=cx+ro*Math.cos(a2),y2=cy+ro*Math.sin(a2);
-    const x3=cx+ri*Math.cos(a2),y3=cy+ri*Math.sin(a2);
-    const x4=cx+ri*Math.cos(a1),y4=cy+ri*Math.sin(a1);
-    const lg=sweep>Math.PI?1:0;
-    svg+=`<path d="M${x1},${y1} A${ro},${ro} 0 ${lg},1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${lg},0 ${x4},${y4} Z" fill="${sl.color}"/>`;
+    const sweep=(sl.value/total)*2*Math.PI,a1=angle,a2=angle+sweep-0.02;
+    const x1=cx+ro*Math.cos(a1),y1=cy+ro*Math.sin(a1),x2=cx+ro*Math.cos(a2),y2=cy+ro*Math.sin(a2);
+    const x3=cx+ri*Math.cos(a2),y3=cy+ri*Math.sin(a2),x4=cx+ri*Math.cos(a1),y4=cy+ri*Math.sin(a1);
+    svg+=`<path d="M${x1},${y1} A${ro},${ro} 0 ${sweep>Math.PI?1:0},1 ${x2},${y2} L${x3},${y3} A${ri},${ri} 0 ${sweep>Math.PI?1:0},0 ${x4},${y4} Z" fill="${sl.color}"/>`;
     angle+=sweep;
   });
-  svg+=`</svg>`;return svg;
+  return svg+`</svg>`;
 }
-
 function svgGroupedBar(groups,keys,colors,W,H){
-  const PL=46,PR=8,PT=8,PB=50;
-  const w=W-PL-PR,h=H-PT-PB;
-  const n=groups.length,k=keys.length;
+  const PL=46,PR=8,PT=8,PB=50,w=W-PL-PR,h=H-PT-PB,n=groups.length,k=keys.length;
   const maxV=Math.max(...groups.flatMap(g=>keys.map(key=>Math.abs(g[key]||0))),1);
   const groupW=w/n,barW=Math.max(3,Math.floor(groupW/k)-1);
   let svg=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible">`;
@@ -177,83 +153,48 @@ function svgGroupedBar(groups,keys,colors,W,H){
   groups.forEach((g,gi)=>{
     const gx=PL+gi*groupW;
     keys.forEach((key,ki)=>{
-      const v=Math.abs(g[key]||0);
-      if(v<=0)return;
-      const bh=Math.max(1,(v/maxV)*h);
-      const bx=gx+(groupW-k*barW)/2+ki*barW;
-      const by=PT+h-bh;
+      const v=Math.abs(g[key]||0);if(v<=0)return;
+      const bh=Math.max(1,(v/maxV)*h),bx=gx+(groupW-k*barW)/2+ki*barW,by=PT+h-bh;
       svg+=`<rect x="${bx}" y="${by}" width="${barW}" height="${bh}" fill="${colors[ki]}" rx="1"/>`;
     });
-    const lbl=g.name||g.year||"";
-    svg+=`<text x="${gx+groupW/2}" y="${PT+h+12}" text-anchor="middle" fill="#475569" font-size="8" font-family="monospace" transform="rotate(-35,${gx+groupW/2},${PT+h+12})">${lbl}</text>`;
+    svg+=`<text x="${gx+groupW/2}" y="${PT+h+12}" text-anchor="middle" fill="#475569" font-size="8" font-family="monospace" transform="rotate(-35,${gx+groupW/2},${PT+h+12})">${g.name||""}</text>`;
   });
-  svg+=`</svg>`;return svg;
+  return svg+`</svg>`;
 }
 
-// ── RENDER
-function render(){
-  document.getElementById("app").innerHTML=buildHTML();
-  attachEvents();
-}
+function render(){document.getElementById("app").innerHTML=buildHTML();attachEvents();}
 
 function buildHTML(){
-  // Summary data
-  let total=0;
-  const bySheet={};const byCat={};
+  let total=0;const bySheet={},byCat={};
+  for(const sh of CS){const v=getEndBal(sh,yr);bySheet[sh]=v;const t=META[sh].type;byCat[t]=(byCat[t]||0)+v;total+=v;}
+  for(const[sh,i]of Object.entries(STATIC)){const v=getSV(sh,yr);bySheet[sh]=v;byCat[i.type]=(byCat[i.type]||0)+v;total+=v;}
 
+  let totP=0,totM=0,totI=0,totW=0;const bySheetC={};
   for(const sh of CS){
-    const v=getEndBal(sh,y1);
-    bySheet[sh]=v;
-    const t=META[sh].type;
-    byCat[t]=(byCat[t]||0)+v;
-    total+=v;
-  }
-  for(const[sh,i]of Object.entries(STATIC)){
-    const v=getSV(sh,y1);
-    bySheet[sh]=v;
-    byCat[i.type]=(byCat[i.type]||0)+v;
-    total+=v;
+    const d=getD(sh,yr);
+    if(d){totP+=d["Personal Contributions"]||0;totM+=d["Comp Match"]||0;totI+=d["Interest Earned"]||0;totW+=Math.abs(d["Withdrawals"]||0);bySheetC[sh]=d;}
   }
 
-  const ages={Kevin:33+(y1-2026),Julie:34+(y1-2026),Adam:1+(y1-2026)};
+  const ages={Kevin:33+(yr-2026),Julie:34+(yr-2026),Adam:1+(yr-2026)};
+  const W=Math.min(560,window.innerWidth-52);
+  const sliderTicks=[2020,2025,2030,2035,2040,2045,2050,2055,2060,2065,2070,2075,2080];
 
-  // Contribution data
-  let totP=0,totM=0,totI=0,totW=0;
-  const bySheetC={};
-  for(const sh of CS){
-    const d=getD(sh,y2);
-    if(d){
-      totP+=d["Personal Contributions"]||0;
-      totM+=d["Comp Match"]||0;
-      totI+=d["Interest Earned"]||0;
-      totW+=Math.abs(d["Withdrawals"]||0);
-      bySheetC[sh]=d;
-    }
-  }
-
-  // NW chart
   const nwYrs=[];for(let y=2020;y<=2080;y+=2)nwYrs.push(y);
-  const allSh=[...CS,...Object.keys(STATIC)];
-  const nwDatasets=allSh.map(sh=>({
-    color:SC[sh]||"#888",
-    data:nwYrs.map(y=>CS.includes(sh)?getEndBal(sh,y):getSV(sh,y))
-  }));
-  const nwChart=svgStackedBar(nwDatasets,nwYrs,Math.min(560,window.innerWidth-52),200);
+  const nwDatasets=[
+    {color:"#3b82f6",data:nwYrs.map(y=>CS.reduce((s,sh)=>{const d=getD(sh,y);return s+(d?(d["Personal Contributions"]||0)+(d["Comp Match"]||0):0);},0))},
+    {color:"#f59e0b",data:nwYrs.map(y=>CS.reduce((s,sh)=>{const d=getD(sh,y);return s+Math.max(0,(d?d["Interest Earned"]||0:0));},0))},
+    {color:"#ef4444",data:nwYrs.map(y=>CS.reduce((s,sh)=>{const d=getD(sh,y);return s+Math.abs(d?d["Withdrawals"]||0:0);},0))}
+  ];
+  const nwChart=svgStackedBar(nwDatasets,nwYrs,W,200);
 
-  // Activity chart
   const actGroups=CS.map(sh=>{
-    const d=getD(sh,y2);
-    return{
-      name:sh.replace(" 401k","").replace(" IRA","").replace(" Plan","").replace("Adam ","A.").replace("Kevin ","K.").replace("Roth ","R."),
-      Personal:d?d["Personal Contributions"]||0:0,
-      Match:d?d["Comp Match"]||0:0,
-      Interest:d?d["Interest Earned"]||0:0,
-      Withdrawals:d?Math.abs(d["Withdrawals"]||0):0
-    };
+    const d=getD(sh,yr);
+    return{name:sh.replace(" 401k","").replace(" IRA","").replace(" Plan","").replace("Adam ","A.").replace("Kevin ","K.").replace("Roth ","R."),
+      Personal:d?d["Personal Contributions"]||0:0,Match:d?d["Comp Match"]||0:0,
+      Interest:d?d["Interest Earned"]||0:0,Withdrawals:d?Math.abs(d["Withdrawals"]||0):0};
   }).filter(g=>g.Personal+g.Match+g.Interest+g.Withdrawals>0);
-  const actChart=svgGroupedBar(actGroups,["Personal","Match","Interest","Withdrawals"],["#3b82f6","#10b981","#f59e0b","#ef4444"],Math.min(560,window.innerWidth-52),210);
+  const actChart=svgGroupedBar(actGroups,["Personal","Match","Interest","Withdrawals"],["#3b82f6","#10b981","#f59e0b","#ef4444"],W,210);
 
-  // Trend chart
   const tYrs=[];for(let y=2019;y<=2080;y++)tYrs.push(y);
   const trendDatasets=[
     {color:"#3b82f6",data:tYrs.map(y=>{const d=getD(trendSheet,y);return d?d["Personal Contributions"]||0:0;})},
@@ -261,27 +202,34 @@ function buildHTML(){
     {color:"#f59e0b",data:tYrs.map(y=>{const d=getD(trendSheet,y);return d?d["Interest Earned"]||0:0;})},
     {color:"#ef4444",data:tYrs.map(y=>{const d=getD(trendSheet,y);return d?Math.abs(d["Withdrawals"]||0):0;})}
   ];
-  const trendChart=svgStackedBar(trendDatasets,tYrs,Math.min(560,window.innerWidth-52),200);
-
-  // Balance trend chart for summary tab
-  const balDatasets=CS.filter(sh=>getEndBal(sh,2080)>0||getEndBal(sh,2026)>0).map(sh=>({
-    color:SC[sh]||"#888",
-    data:nwYrs.map(y=>getEndBal(sh,y))
-  }));
+  const trendChart=svgStackedBar(trendDatasets,tYrs,W,200);
 
   const donutSlices=CAT_ORDER.filter(c=>byCat[c]>0).map(c=>({color:CAT_COLORS[c],value:byCat[c]}));
   const donutW=Math.min(200,window.innerWidth-100);
   const donut=svgDonut(donutSlices,donutW,donutW);
 
-  const sliderTicks=[2020,2025,2030,2035,2040,2045,2050,2055,2060,2065,2070,2075,2080];
+  const agesBar=`<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+  ${Object.entries(ages).map(([n,a])=>`<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 12px"><div style="font-size:10px;color:#64748b">${n}</div><div style="font-size:14px;font-weight:700;color:#e2e8f0;font-family:monospace">Age ${a}</div></div>`).join("")}
+  <div style="flex:1;background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(16,185,129,.1));border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:7px 12px;min-width:140px">
+    <div style="font-size:10px;color:#64748b;text-transform:uppercase">Net Worth ${yr}</div>
+    <div style="font-size:20px;font-weight:700;color:#f8fafc;font-family:serif">${fmtF(total)}</div>
+  </div>
+</div>`;
 
   return `
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-  <div>
-    <h1 style="font-size:21px;font-weight:700;color:#f8fafc;letter-spacing:-.5px">Girsch Household</h1>
-    <p style="margin-top:2px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Investment Dashboard</p>
-  </div>
+  <div><h1 style="font-size:21px;font-weight:700;color:#f8fafc;letter-spacing:-.5px">Girsch Household</h1>
+  <p style="margin-top:2px;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.5px">Investment Dashboard</p></div>
   <button class="reset-btn" onclick="resetData()">↺ Reset</button>
+</div>
+
+<div class="slider-card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <span style="font-size:12px;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.5px">Year</span>
+    <span style="font-size:28px;font-weight:700;color:#3b82f6;font-family:serif">${yr}</span>
+  </div>
+  <input type="range" min="2020" max="2080" value="${yr}" oninput="setYr(+this.value)"/>
+  <div class="tick-row">${sliderTicks.map(y=>`<span class="tick${y===yr?" active":""}" onclick="setYr(${y})">${y}</span>`).join("")}</div>
 </div>
 
 <div class="tab-bar">
@@ -289,54 +237,34 @@ function buildHTML(){
   <button class="tab-btn ${tab===1?"active":""}" onclick="switchTab(1)">💰 Contributions</button>
 </div>
 
+${agesBar}
+
 ${tab===0?`
-<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-  ${Object.entries(ages).map(([n,a])=>`<div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:7px 12px"><div style="font-size:10px;color:#64748b">${n}</div><div style="font-size:14px;font-weight:700;color:#e2e8f0;font-family:monospace">Age ${a}</div></div>`).join("")}
-  <div style="flex:1;background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(16,185,129,.1));border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:7px 12px;min-width:140px">
-    <div style="font-size:10px;color:#64748b;text-transform:uppercase">Net Worth ${y1}</div>
-    <div style="font-size:20px;font-weight:700;color:#f8fafc;font-family:serif">${fmtF(total)}</div>
-  </div>
-</div>
-
-<div class="slider-card">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <span style="font-size:12px;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.5px">Report Year</span>
-    <span style="font-size:28px;font-weight:700;color:#3b82f6;font-family:serif">${y1}</span>
-  </div>
-  <input type="range" min="2020" max="2080" value="${y1}" oninput="setY1(+this.value)"/>
-  <div class="tick-row">${sliderTicks.map(y=>`<span class="tick${y===y1?" active":""}" onclick="setY1(${y})">${y}</span>`).join("")}</div>
-</div>
-
 <div class="card">
-  <div class="card-title">Account Breakdown — ${y1}</div>
+  <div class="card-title">Account Breakdown — ${yr}</div>
   ${CAT_ORDER.map(cat=>{
     const allEntries=[
       ...Object.entries(bySheet).filter(([sh])=>META[sh]?.type===cat),
       ...Object.entries(bySheet).filter(([sh])=>STATIC[sh]?.type===cat)
     ].filter(([,v])=>v>0);
     if(!allEntries.length)return"";
-    const catTot=allEntries.reduce((s,[,v])=>s+v,0);
-    if(catTot<=0)return"";
-    const catP=pct(catTot,total);
-    const cc=CAT_COLORS[cat];
+    const catTot=allEntries.reduce((s,[,v])=>s+v,0);if(catTot<=0)return"";
+    const catP=pct(catTot,total),cc=CAT_COLORS[cat];
     return`<div style="margin-bottom:18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
         <div style="display:flex;align-items:center;gap:7px">
           <div style="width:10px;height:10px;border-radius:3px;background:${cc}"></div>
           <span style="font-size:12px;font-weight:700;color:#cbd5e1">${CAT_LABELS[cat]||cat}</span>
         </div>
-        <div>
-          <span style="font-size:13px;font-family:monospace;color:#f8fafc;font-weight:700">${fmtF(catTot)}</span>
-          <span style="font-size:10px;color:#475569;font-family:monospace;margin-left:6px">${catP}%</span>
-        </div>
+        <div><span style="font-size:13px;font-family:monospace;color:#f8fafc;font-weight:700">${fmtF(catTot)}</span>
+        <span style="font-size:10px;color:#475569;font-family:monospace;margin-left:6px">${catP}%</span></div>
       </div>
       <div style="background:rgba(255,255,255,0.06);border-radius:2px;height:4px;overflow:hidden;margin-bottom:10px">
         <div style="width:${catP}%;height:100%;background:${cc};border-radius:2px"></div>
       </div>
       ${allEntries.sort((a,b)=>b[1]-a[1]).map(([sh,val])=>{
-        const pp=pct(val,catTot);
-        const person=(META[sh]||STATIC[sh])?.person||"";
-        return`<div style="margin-bottom:8px;padding-left:14px;border-left:2px solid ${(SC[sh]||cc)+'40'}">
+        const pp=pct(val,catTot),person=(META[sh]||STATIC[sh])?.person||"";
+        return`<div style="margin-bottom:8px;padding-left:14px;border-left:2px solid ${(SC[sh]||cc)+"40"}">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
             <div style="display:flex;align-items:center;gap:5px">
               <div style="width:6px;height:6px;border-radius:50%;background:${SC[sh]||cc};flex-shrink:0"></div>
@@ -367,24 +295,15 @@ ${tab===0?`
 </div>
 
 <div class="card">
-  <div class="card-title">Net Worth Over Time</div>
+  <div class="card-title">Annual Activity Over Time</div>
   <div style="overflow-x:auto">${nwChart}</div>
-  <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
-    ${allSh.map(sh=>`<div style="display:flex;align-items:center;gap:4px"><div style="width:7px;height:7px;border-radius:2px;background:${SC[sh]||'#888'}"></div><span style="font-size:9px;color:#475569">${sh}</span></div>`).join("")}
+  <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
+    ${[["Contributions","#3b82f6"],["Interest Earned","#f59e0b"],["Withdrawals","#ef4444"]].map(([l,c])=>`<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:${c}"></div><span style="font-size:11px;color:#64748b">${l}</span></div>`).join("")}
   </div>
 </div>
 `:""}
 
 ${tab===1?`
-<div class="slider-card">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <span style="font-size:12px;color:#64748b;font-weight:500;text-transform:uppercase;letter-spacing:.5px">Activity Year</span>
-    <span style="font-size:28px;font-weight:700;color:#3b82f6;font-family:serif">${y2}</span>
-  </div>
-  <input type="range" min="2019" max="2080" value="${y2}" oninput="setY2(+this.value)"/>
-  <div class="tick-row">${sliderTicks.map(y=>`<span class="tick${y===y2?" active":""}" onclick="setY2(${y})">${y}</span>`).join("")}</div>
-</div>
-
 <div class="stat-row">
   <div class="stat-box" style="border:1px solid #3b82f630"><div style="font-size:10px;color:#64748b;margin-bottom:3px">Personal</div><div style="font-size:15px;font-family:monospace;color:#3b82f6;font-weight:700">${fmt(totP)}</div></div>
   <div class="stat-box" style="border:1px solid #10b98130"><div style="font-size:10px;color:#64748b;margin-bottom:3px">Match</div><div style="font-size:15px;font-family:monospace;color:#10b981;font-weight:700">${fmt(totM)}</div></div>
@@ -393,7 +312,7 @@ ${tab===1?`
 </div>
 
 <div class="card">
-  <div class="card-title">Activity by Account — ${y2}</div>
+  <div class="card-title">Activity by Account — ${yr}</div>
   <div style="overflow-x:auto">${actChart}</div>
   <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
     ${[["Personal","#3b82f6"],["Match","#10b981"],["Interest","#f59e0b"],["Withdrawals","#ef4444"]].map(([l,c])=>`<div style="display:flex;align-items:center;gap:5px"><div style="width:8px;height:8px;border-radius:2px;background:${c}"></div><span style="font-size:11px;color:#64748b">${l}</span></div>`).join("")}
@@ -402,7 +321,7 @@ ${tab===1?`
 
 <div class="card">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <div class="card-title" style="margin:0">Account Detail — ${y2}</div>
+    <div class="card-title" style="margin:0">Account Detail — ${yr}</div>
     <span style="font-size:10px;color:#475569">tap to edit</span>
   </div>
   <div style="overflow-x:auto">
@@ -414,11 +333,11 @@ ${tab===1?`
       <tbody>
         ${CS.map(sh=>{
           const d=bySheetC[sh];if(!d)return"";
-          const bal=getEndBal(sh,y2);
+          const bal=getEndBal(sh,yr);
           if(!(d["Personal Contributions"]||d["Comp Match"]||d["Interest Earned"]||d["Withdrawals"]||d["Fees"]||d["Return %"])&&bal===0)return"";
           const ec=(val,field,fmtType,color)=>{
             const disp=fmtType==="pct"?`${(val*100).toFixed(2)}%`:val===0?"—":val<0?`(${fmt(Math.abs(val))})`:fmt(val);
-            return`<span class="editable" style="color:${color}" contenteditable="true" data-sheet="${sh}" data-yr="${y2}" data-field="${field}" data-fmt="${fmtType}">${disp}</span>`;
+            return`<span class="editable" style="color:${color}" contenteditable="true" data-sheet="${sh}" data-yr="${yr}" data-field="${field}" data-fmt="${fmtType}">${disp}</span>`;
           };
           return`<tr>
             <td style="text-align:left"><div style="display:flex;align-items:center;gap:4px"><div style="width:6px;height:6px;border-radius:50%;background:${SC[sh]};flex-shrink:0"></div><span style="font-size:10px;color:#e2e8f0">${sh}</span></div></td>
@@ -452,31 +371,26 @@ ${tab===1?`
 function attachEvents(){
   document.querySelectorAll(".editable").forEach(el=>{
     el.addEventListener("focus",()=>{
-      const sh=el.dataset.sheet,yr=+el.dataset.yr,field=el.dataset.field,ft=el.dataset.fmt;
-      const d=cd[sh]?.[yr];
-      if(!d)return;
+      const sh=el.dataset.sheet,y=+el.dataset.yr,field=el.dataset.field,ft=el.dataset.fmt;
+      const d=cd[sh]?.[y];if(!d)return;
       const val=d[field]||0;
       el.textContent=ft==="pct"?(val*100).toFixed(2):String(Math.round(Math.abs(val)));
       setTimeout(()=>{const r=document.createRange(),s=window.getSelection();r.selectNodeContents(el);s.removeAllRanges();s.addRange(r);},10);
     });
     el.addEventListener("blur",()=>{
-      const sh=el.dataset.sheet,yr=+el.dataset.yr,field=el.dataset.field,ft=el.dataset.fmt;
+      const sh=el.dataset.sheet,y=+el.dataset.yr,field=el.dataset.field,ft=el.dataset.fmt;
       const n=parseFloat(el.textContent.replace(/[^0-9.\-]/g,""));
       if(isNaN(n))return render();
-      let val=ft==="pct"?n/100:ft==="neg"?-Math.abs(n):n;
-      if(!cd[sh])cd[sh]={};
-      if(!cd[sh][yr])cd[sh][yr]={};
-      cd[sh][yr][field]=val;
-      // Recompute ending balance for this year
-      persist();render();
+      const val=ft==="pct"?n/100:ft==="neg"?-Math.abs(n):n;
+      if(!cd[sh])cd[sh]={};if(!cd[sh][y])cd[sh][y]={};
+      cd[sh][y][field]=val;persist();render();
     });
     el.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();el.blur();}if(e.key==="Escape")render();});
   });
 }
 
 window.switchTab=t=>{tab=t;render();};
-window.setY1=y=>{y1=y;render();};
-window.setY2=y=>{y2=y;render();};
+window.setYr=y=>{yr=y;render();};
 window.setTrend=s=>{trendSheet=s;render();};
 window.resetData=()=>{if(confirm("Reset all edits to original Excel data?")){cd=JSON.parse(JSON.stringify(IC));persist();render();}};
 
